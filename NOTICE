@@ -1,12 +1,12 @@
-                     AMQPUtils LICENSE INFORMATION
+                     PubSubHubbubUtils LICENSE INFORMATION
 
-March 25, 2011
+May 5, 2011
 
-AMQPUtils software is licensed under the Apache License,
+PubSubHubBubUtils software is licensed under the Apache License,
 Version 2.0. Other software included in this distribution is provided under 
 other licenses, as listed in the Included Software and Licenses section at 
 the bottom of this page. Source code for software included in this distribution
-is available from the AMQPUtils project or as otherwise 
+is available from the PubSubHubbubUtils project or as otherwise 
 indicated at the bottom of this page. 
 
 ===
@@ -21,6 +21,6 @@ has source available from other locations.
   License: Apache License, Version 2.0 
   Source code availability: https://github.com/bigdata-mx/AnyObject/
 
-* RabbitMQ Java Client
-  License: Mozilla Public License v1.1
-  Source code availability: http://www.rabbitmq.com/java-client.html
+* PubSubHubbub in java
+  License: Apache License, Version 2.0
+  Source code availability: http://code.google.com/p/pubsubhubbub-java/

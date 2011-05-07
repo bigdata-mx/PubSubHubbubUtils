@@ -1,3 +1,3 @@
-AMQPUtils
+PubSubHubbubUtils
 ========
-AMQPUtils is a simple RabbitMQ Java client wrapper
+PubSubHubbubUtils is a subscriber library for PubSubHubbub refactored from http://code.google.com/p/pubsubhubbub-java/ originaly filed under the Apache License 2.0
