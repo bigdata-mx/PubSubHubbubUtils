@@ -43,7 +43,7 @@
     <dependency>
       <groupId>mx.bigdata.anyobject</groupId>
       <artifactId>anyobject</artifactId>
-      <version>0.9.1</version>
+      <version>0.9.4</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -58,12 +58,19 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>4.0.3</version>
+      <version>4.1.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>4.1.2</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>r07</version>
+      <version>11.0.1</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>

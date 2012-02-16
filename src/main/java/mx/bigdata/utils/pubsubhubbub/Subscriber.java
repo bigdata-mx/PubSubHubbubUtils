@@ -58,24 +58,25 @@ public class Subscriber {
 
   public Subscriber(CallbackServer webserver) {		
     this.webserver = webserver;
-    HttpParams params = new BasicHttpParams();
-    ConnManagerParams.setMaxTotalConnections(params, 200);
-    ConnPerRouteBean connPerRoute = new ConnPerRouteBean(20);
-    connPerRoute.setDefaultMaxPerRoute(50);
-    ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
     SchemeRegistry schemeRegistry = new SchemeRegistry();
-    schemeRegistry.register(new Scheme("http", PlainSocketFactory
-                                       .getSocketFactory(), 80));
-      schemeRegistry.register(new Scheme("https", 
-                                   SSLSocketFactory.getSocketFactory(), 443));
-    ClientConnectionManager cm = 
-      new ThreadSafeClientConnManager(params, schemeRegistry);
-    httpClient = new DefaultHttpClient(cm, params);
+    schemeRegistry
+      .register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+    schemeRegistry
+      .register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
+    //ConnManagerParams.setMaxTotalConnections(params, 200);
+    //ConnPerRouteBean connPerRoute = new ConnPerRouteBean(20);
+    //connPerRoute.setDefaultMaxPerRoute(50);
+    //ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
+    ThreadSafeClientConnManager cm = 
+      new ThreadSafeClientConnManager(schemeRegistry);
+    cm.setMaxTotal(200);
+    cm.setDefaultMaxPerRoute(50);
+    httpClient = new DefaultHttpClient(cm, new BasicHttpParams());
     httpClient.setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
         public long getKeepAliveDuration(HttpResponse response,
                                          HttpContext context) {
-          HeaderElementIterator it = new BasicHeaderElementIterator(
-                                 response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+          HeaderElementIterator it = new BasicHeaderElementIterator
+	    (response.headerIterator(HTTP.CONN_KEEP_ALIVE));
           while (it.hasNext()) {
             HeaderElement he = it.nextElement();
             String param = he.getName();
