@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
+
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;
@@ -31,6 +33,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
@@ -51,6 +54,8 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
 
 public class Subscriber {
+
+  private final Logger logger = Logger.getLogger(getClass());
 
   private final DefaultHttpClient httpClient;
 
@@ -102,24 +107,55 @@ public class Subscriber {
    * 
    * @return HTTP Response code. 200 is ok. Anything else smells like trouble
    */
-  public int subscribe(String hub, String topic_url, String hostname,
-                       String uname, String passwd)
-    throws Exception {
-    String callbackserverurl= hostname + CallbackServer.CONTEXT_PATH + "/";   
-    HttpPost httppost = new HttpPost(hub);
-    List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-    nvps.add(new BasicNameValuePair("hub.callback", callbackserverurl));
-    nvps.add(new BasicNameValuePair("hub.mode", "subscribe"));
-    nvps.add(new BasicNameValuePair("hub.topic", topic_url));
-    nvps.add(new BasicNameValuePair("hub.verify", "sync"));
-    nvps.add(new BasicNameValuePair("hub.secret", webserver.getKey()));
+  public int subscribe(String hub, String topic_url,
+		       String uname, String passwd) throws Exception {
+    return executeAction("subscribe", hub, topic_url, uname, passwd);
+  }
+
+  /*
+   * @throws IOException If an input or output exception occurred
+   * 
+   * @param The Hub address you want to unpublish it to
+   * 
+   * @param The topic_url you want to unpublish
+   * 
+   * @return HTTP Response code. 200 is ok. Anything else smells like trouble
+   */
+  public int unsubscribe(String hub, String topic_url,
+                         String uname, String passwd) throws Exception {
+    return executeAction("unsubscribe", hub, topic_url, uname, passwd);
+  }
+
+  public int executeAction(String action, String hub, String topic_url,
+			   String uname, String passwd) throws Exception {
+    String callback = webserver.getCallbackUrl();
     String vtoken = UUID.randomUUID().toString();
+    logger.debug("hub.callback: " + callback);
+    logger.debug("hub.mode: " + action);
+    logger.debug("hub.topic: " + topic_url);
+    logger.trace("hub.secret: " + webserver.getKey());
+    logger.trace("hub.verify: " + "sync");
+    logger.trace("hub.verify_token: " + vtoken);
+    List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+    nvps.add(new BasicNameValuePair("hub.callback", callback));
+    nvps.add(new BasicNameValuePair("hub.mode", action));
+    nvps.add(new BasicNameValuePair("hub.topic", topic_url));
+    nvps.add(new BasicNameValuePair("hub.secret", webserver.getKey()));
+    nvps.add(new BasicNameValuePair("hub.verify", "sync"));
+    // nvps.add(new BasicNameValuePair("hub.verify", "async"));
     nvps.add(new BasicNameValuePair("hub.verify_token", vtoken));
-    webserver.addAction("subscribe", topic_url, vtoken);
-    httppost.setEntity(new UrlEncodedFormEntity(nvps));
-    httppost.setHeader("Content-type", "application/x-www-form-urlencoded");
+    webserver.addAction(action, topic_url, vtoken);
+    if (logger.isTraceEnabled()) {
+      logger.trace("postBody: " + URLEncodedUtils.format(nvps, "UTF-8"));
+    }
+    HttpPost httppost = new HttpPost(hub);
+    httppost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
+    httppost.setHeader("Content-type", 
+		       "application/x-www-form-urlencoded; charset=UTF-8");
     httppost.setHeader("User-agent", "RSS pubsubhubbub 0.3");
     httppost.setHeader("Accept", "application/json");
+    httppost.setHeader("Accept-Charset", "utf-8");
+
     UsernamePasswordCredentials credentials = 
       new UsernamePasswordCredentials(uname, passwd);
     BasicScheme scheme = new BasicScheme();
@@ -138,40 +174,5 @@ public class Subscriber {
       entity.consumeContent();
     }
     return httpresponse;
-  }
-	
-  /*
-   * @throws IOException If an input or output exception occurred
-   * 
-   * @param The Hub address you want to unpublish it to
-   * 
-   * @param The topic_url you want to unpublish
-   * 
-   * @return HTTP Response code. 200 is ok. Anything else smells like trouble
-   */
-  public int unsubscribe(String hub, String topic_url,String hostname,
-                         String uname, String passwd) throws Exception {
-      String callbackserverurl= hostname + CallbackServer.CONTEXT_PATH + "/";
-			
-      HttpPost httppost = new HttpPost(hub);
-      List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-      nvps.add(new BasicNameValuePair("hub.callback", callbackserverurl));
-      nvps.add(new BasicNameValuePair("hub.mode", "unsubscribe"));
-      nvps.add(new BasicNameValuePair("hub.topic", topic_url));
-      nvps.add(new BasicNameValuePair("hub.verify", "sync"));
-      nvps.add(new BasicNameValuePair("hub.secret", webserver.getKey()));
-      String vtoken = UUID.randomUUID().toString();
-      nvps.add(new BasicNameValuePair("hub.verify_token", vtoken));
-      webserver.addAction("unsubscribe",topic_url,vtoken);
-      httppost.setEntity(new UrlEncodedFormEntity(nvps));
-      httppost.setHeader("Content-type", "application/x-www-form-urlencoded");
-      httppost.setHeader("User-agent", "ERGO RSS pubsubhubbub 0.3");
-      UsernamePasswordCredentials credentials = 
-        new UsernamePasswordCredentials(uname, passwd);
-      BasicScheme scheme = new BasicScheme();
-      Header authorizationHeader = scheme.authenticate(credentials,httppost);
-      httppost.addHeader(authorizationHeader);
-      HttpResponse httpresponse = execute(httpClient, httppost);
-      return httpresponse.getStatusLine().getStatusCode();
   }
 }

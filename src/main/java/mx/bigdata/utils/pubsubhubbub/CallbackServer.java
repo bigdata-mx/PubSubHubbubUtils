@@ -27,7 +27,7 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 
 public final class CallbackServer extends Thread {
   
-  public static final String CONTEXT_PATH = "/push";
+  private static final String CONTEXT_PATH = "/push";
 	
   private final Set<String> approvedActions = Sets.newHashSet();
 
@@ -37,15 +37,24 @@ public final class CallbackServer extends Thread {
 
   private final String key;
 
-  public CallbackServer(int port, String key) throws Exception {
-    this.key = key;
-    init(port);
+  private final String serverUrl;
+
+  public CallbackServer(int port, String key, String hostname) 
+    throws Exception {
+    this(port, key, hostname, CONTEXT_PATH);
   }
 
-  private void init(int port) throws Exception {
+  public CallbackServer(int port, String key, String hostname, 
+			String path) throws Exception {
+    this.key = key;
+    this.serverUrl = hostname + ":" + port + path;
+    init(port, path);
+  }
+
+  private void init(int port, String path) throws Exception {
     Server server = new Server(port);		
     ContextHandler context = new ContextHandler();
-    context.setContextPath(CONTEXT_PATH);
+    context.setContextPath(path);
     context.setResourceBase(".");
     context.setClassLoader(Thread.currentThread().getContextClassLoader());
     server.setHandler(context); 
@@ -73,6 +82,10 @@ public final class CallbackServer extends Thread {
   public void addAction(String hubmode, String hubtopic, String hubverify) {
     String action = hubtopic + ":" + hubverify;
     approvedActions.add(action);
+  }
+
+  public String getCallbackUrl() {
+    return serverUrl;
   }
     
   void notifyContentHandlers(byte[] bytes) {
