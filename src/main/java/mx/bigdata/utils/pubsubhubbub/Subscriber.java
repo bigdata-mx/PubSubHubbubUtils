@@ -134,15 +134,14 @@ public class Subscriber {
     logger.debug("hub.mode: " + action);
     logger.debug("hub.topic: " + topic_url);
     logger.trace("hub.secret: " + webserver.getKey());
-    logger.trace("hub.verify: " + "sync");
+    logger.trace("hub.verify: " + "async");
     logger.trace("hub.verify_token: " + vtoken);
     List<NameValuePair> nvps = new ArrayList<NameValuePair>();
     nvps.add(new BasicNameValuePair("hub.callback", callback));
     nvps.add(new BasicNameValuePair("hub.mode", action));
     nvps.add(new BasicNameValuePair("hub.topic", topic_url));
     nvps.add(new BasicNameValuePair("hub.secret", webserver.getKey()));
-    nvps.add(new BasicNameValuePair("hub.verify", "sync"));
-    // nvps.add(new BasicNameValuePair("hub.verify", "async"));
+    nvps.add(new BasicNameValuePair("hub.verify", "async"));
     nvps.add(new BasicNameValuePair("hub.verify_token", vtoken));
     webserver.addAction(action, topic_url, vtoken);
     if (logger.isTraceEnabled()) {
